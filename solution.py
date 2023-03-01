@@ -9,6 +9,153 @@ import constants as c
 class SOLUTION:
     def __init__(self, nextAvailableID):
         self.myID = nextAvailableID
+        self.seed = c.seed
+        random.seed(self.seed)
+
+        self.numLinks = c.numLinks
+        self.numSubLinks = c.numSubLinks
+
+        self.startZ = 3
+
+        self.linkNames = []
+        self.jointNames = []
+        self.x = {}
+        self.y = {}
+        self.z = {}
+        self.myColor = {}
+        self.jointAxis = {}
+        self.dir = {}
+        self.subJointPos = {}
+        self.subJointParent = {}
+        self.subJointChild = {}
+        self.linkPos = {}
+
+        self.randSensors = random.sample(range(0,c.totalNumLinks), c.numSensorNeurons)
+        self.randSensors.sort()
+
+        for ind in range(0,self.numLinks):
+            self.linkNames.append("Body"+str(ind+1)+"."+str(0)+"."+str(0))
+            self.x[self.linkNames[ind]] = random.uniform(1.0,1.25)
+            self.y[self.linkNames[ind]] = random.uniform(0.5,1.25)
+            self.z[self.linkNames[ind]] = random.uniform(0.5,1.25)
+            if ind in self.randSensors:
+                self.myColor[self.linkNames[ind]] = "green"
+            else:
+                self.myColor[self.linkNames[ind]] = "blue"
+
+            if ind > 0:
+                self.jointNames.append("Body"+str(ind)+"."+str(0)+"."+str(0)+"_Body"+str(ind+1)+"."+str(0)+"."+str(0))
+                jointDir = random.randint(1,3)
+                # 1 is x axis
+                # 2 is y axis
+                # 3 is z axis
+                if jointDir == 1:
+                    self.jointAxis[self.jointNames[ind-1]] = "1 0 0"
+                elif jointDir == 2:
+                    self.jointAxis[self.jointNames[ind-1]] = "0 1 0"
+                elif jointDir == 3:
+                    self.jointAxis[self.jointNames[ind-1]] = "0 0 1"
+            
+                    
+        for row in range(1, self.numLinks+1):
+            for col in range(1,2+1):
+                for num in range(0, self.numSubLinks[row-1,col-1]):
+                    self.linkNames.append("Body"+str(row)+"."+str(col)+"."+str(num))
+
+                    ind = ind + 1
+                    self.x[self.linkNames[ind]] = random.uniform(0.25,0.75)
+                    self.y[self.linkNames[ind]] = random.uniform(0.25,0.75)
+                    self.z[self.linkNames[ind]] = random.uniform(0.5,0.75)
+                    if ind in self.randSensors:
+                        self.myColor[self.linkNames[ind]] = "green"
+                    else:
+                        self.myColor[self.linkNames[ind]] = "blue"
+
+                    if col == 1: # negative side joint
+                        negMultY = -1
+                    else:
+                        negMultY = 1
+
+                    if num == 0:
+                        # joint name to torso
+                        self.jointNames.append("Body"+str(row)+"."+str(0)+"."+str(0)+"_Body"+str(row)+"."+str(col)+"."+str(num))
+                        jointDir = random.randint(1,3)
+                        # 1 is x axis
+                        # 2 is y axis
+                        # 3 is z axis
+                        if jointDir == 1:
+                            self.jointAxis[self.jointNames[ind-1]] = "1 0 0"
+                        elif jointDir == 2:
+                            self.jointAxis[self.jointNames[ind-1]] = "0 1 0"
+                        elif jointDir == 3:
+                            self.jointAxis[self.jointNames[ind-1]] = "0 0 1"
+                        
+                        self.dir[self.jointNames[ind-1]] = 2
+                        # 1 is down in -z direction
+                        # 2 is left/right in +/-y direction
+
+                        self.linkPos[self.linkNames[ind]] = [0, negMultY*self.y[self.linkNames[ind]]/2,0]
+
+                        if row == 1:
+                            # absolute position
+                            self.subJointPos[self.jointNames[ind-1]] = [0, negMultY*self.y["Body"+str(row)+"."+str(0)+"."+str(0)]/2, self.startZ]
+                            self.subJointParent[self.jointNames[ind-1]] = "Body"+str(row)+"."+str(0)+"."+str(0)
+                            self.subJointChild[self.jointNames[ind-1]] = self.linkNames[ind]
+                        else:
+                            # relative position
+                            self.subJointPos[self.jointNames[ind-1]] = [self.x["Body"+str(row)+"."+str(0)+"."+str(0)]/2, 
+                                                                        negMultY*self.y["Body"+str(row)+"."+str(0)+"."+str(0)]/2, 0]
+                            self.subJointParent[self.jointNames[ind-1]] = "Body"+str(row)+"."+str(0)+"."+str(0)
+                            self.subJointChild[self.jointNames[ind-1]] = self.linkNames[ind]
+
+
+                    elif num > 0:
+                        # joint to previous num
+                        self.jointNames.append("Body"+str(row)+"."+str(col)+"."+str(num-1)+"_Body"+str(row)+"."+str(col)+"."+str(num))
+                        jointDir = random.randint(1,3)
+                        # 1 is x axis
+                        # 2 is y axis
+                        # 3 is z axis
+                        if jointDir == 1:
+                            self.jointAxis[self.jointNames[ind-1]] = "1 0 0"
+                        elif jointDir == 2:
+                            self.jointAxis[self.jointNames[ind-1]] = "0 1 0"
+                        elif jointDir == 3:
+                            self.jointAxis[self.jointNames[ind-1]] = "0 0 1"
+                        
+                        self.dir[self.jointNames[ind-1]] = random.randint(1,2)
+                        # 1 is down in -z direction
+                        # 2 is left/right in +/-y direction
+                        
+                        self.subJointParent[self.jointNames[ind-1]] = self.linkNames[ind-1]
+                        self.subJointChild[self.jointNames[ind-1]] = self.linkNames[ind]
+
+                        if prevDir == 2 and self.dir[self.jointNames[ind-1]] == 2:
+                            self.subJointPos[self.jointNames[ind-1]] = [0, negMultY*self.y[self.linkNames[ind-1]], 0]
+                            self.linkPos[self.linkNames[ind]] = [0, negMultY*self.y[self.linkNames[ind]]/2,0]
+
+                        elif prevDir == 1 and self.dir[self.jointNames[ind-1]] == 1:
+                            self.subJointPos[self.jointNames[ind-1]] = [0, 0, -1*self.z[self.linkNames[ind-1]]]
+                            self.linkPos[self.linkNames[ind]] = [0, 0, -1*self.z[self.linkNames[ind]]/2]
+
+                        elif prevDir == 2 and self.dir[self.jointNames[ind-1]] == 1:
+                            self.subJointPos[self.jointNames[ind-1]] = [0, negMultY*self.y[self.linkNames[ind-1]]/2,
+                                                                         -1*self.z[self.linkNames[ind-1]]/2]
+                            self.linkPos[self.linkNames[ind]] = [0, 0, -1*self.z[self.linkNames[ind]]/2]
+
+                        elif prevDir == 1 and self.dir[self.jointNames[ind-1]] == 2:
+                            self.subJointPos[self.jointNames[ind-1]] = [0, negMultY*self.y[self.linkNames[ind-1]]/2,
+                                                                         -1*self.z[self.linkNames[ind-1]]/2]
+                            self.linkPos[self.linkNames[ind]] = [0, negMultY*self.y[self.linkNames[ind]]/2, 0]
+
+
+                    prevDir = self.dir[self.jointNames[ind-1]]
+
+
+        # print(self.linkNames)
+        # print(self.jointNames)
+
+
         # a = 3
         # b = 2
         self.weights = np.empty(shape=(c.numSensorNeurons,c.numMotorNeurons), dtype='object')
@@ -18,38 +165,6 @@ class SOLUTION:
                 self.weights[row,col] = np.random.rand()
         self.weights = self.weights * 2 - 1
 
-        random.seed(c.seed)
-        print("seed = " + str(c.seed))
-
-        self.x = []
-        self.y = []
-        self.z = []
-
-        for ind in range(0, c.totalNumLinks):
-            if ind in c.locTorso:
-                self.x.append(random.uniform(1.0,1.25)) #random.random()
-                self.y.append(random.uniform(0.5,1.25)) #random.random()
-                self.z.append(random.uniform(0.5,1.25)) #random.random()
-            else:
-                self.x.append(random.uniform(0.25,0.75)) #random.random()
-                self.y.append(random.uniform(0.25,0.75)) #random.random()
-                self.z.append(random.uniform(0.5,0.75)) #random.random()
-
-        self.linkNames = []
-        self.jointNames = []
-
-        self.randSensors = random.sample(range(0,c.totalNumLinks), c.numSensorNeurons)
-        self.randSensors.sort()
-        # print(self.randSensors)
-
-        self.myColor = []
-        for ind in range(0,c.totalNumLinks):
-            if ind in self.randSensors:
-                self.myColor.append("green")
-            else:
-                self.myColor.append("blue")
-
-        self.counterTorso = []
 
     def Evaluate(self, directOrGUI):
         # pass
@@ -93,11 +208,31 @@ class SOLUTION:
 
         self.weights[randRow, randCol] = random.random()*2 - 1
 
+        randJointAxis = random.randint(0,len(self.jointNames)-1)
+        jointDir = random.randint(1,3)
+        if jointDir == 1:
+            self.jointAxis[self.jointNames[randJointAxis]] = "1 0 0"
+        elif jointDir == 2:
+            self.jointAxis[self.jointNames[randJointAxis]] = "0 1 0"
+        elif jointDir == 3:
+            self.jointAxis[self.jointNames[randJointAxis]] = "0 0 1"
+
+        randLink = random.randint(0,len(self.linkNames)-1)
+        if randLink <= self.numLinks:
+            self.x[self.linkNames[randLink]] = random.uniform(1.0,1.25)
+            self.y[self.linkNames[randLink]] = random.uniform(0.5,1.25)
+            self.z[self.linkNames[randLink]] = random.uniform(0.5,1.25)
+        else:
+            self.x[self.linkNames[randLink]] = random.uniform(0.25,0.75)
+            self.y[self.linkNames[randLink]] = random.uniform(0.25,0.75)
+            self.z[self.linkNames[randLink]] = random.uniform(0.5,0.75)
+
+
     def Set_ID(self, newID):
         self.myID = newID
 
     def Create_World(self):
-        pyrosim.Start_SDF("world.sdf")
+        pyrosim.Start_SDF("world" + str(self.myID) + ".sdf")
         # length = 1
         # width = 1
         # height = 1
@@ -113,128 +248,57 @@ class SOLUTION:
         self.Create_World()
 
         pyrosim.Start_URDF("body" + str(self.myID) + ".urdf")
+        
 
-        startZ = 3
-        counter = -1
-        for row in range(1, c.numLinks+1):
-            counter = counter + 1
-            # print("row = "+str(row))
-            self.linkNames.append("Body"+str(row)+"."+str(0)+"."+str(0))
-            
-            jointDir = random.randint(1,3)
-            # 1 is x axis
-            # 2 is y axis
-            # 3 is z axis
-            if jointDir == 1:
-                jointAxisStr = "1 0 0"
-            elif jointDir == 2:
-                jointAxisStr = "0 1 0"
-            elif jointDir == 3:
-                jointAxisStr = "0 0 1"
-
-
-            if row > 2:
-                self.jointNames.append("Body"+str(row-1)+"."+str(0)+"."+str(0)+"_Body"+str(row)+"."+str(0)+"."+str(0))
-                pyrosim.Send_Joint( name = self.jointNames[counter-1], parent= self.linkNames[self.counterTorso[row-2]], child = self.linkNames[counter], \
-                    type = "revolute", position = [self.x[self.counterTorso[row-2]], 0, self.z[0]/2], jointAxis=jointAxisStr)
-
-                pyrosim.Send_Cube(name=self.linkNames[counter], pos = [self.x[counter]/2, 0, 0], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
-
-            elif row == 2:
-                self.jointNames.append("Body"+str(row-1)+"."+str(0)+"."+str(0)+"_Body"+str(row)+"."+str(0)+"."+str(0))
-                pyrosim.Send_Joint( name = self.jointNames[counter-1], parent= self.linkNames[self.counterTorso[row-2]], child = self.linkNames[counter], \
-                    type = "revolute", position = [self.x[self.counterTorso[row-2]]/2, 0, startZ-self.z[0]/2], jointAxis=jointAxisStr)
-
-                pyrosim.Send_Cube(name=self.linkNames[counter], pos = [self.x[counter]/2, 0, self.z[0]/2], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
-            
+        # for ind in range(0, len(self.linkNames)):
+        for indLink in range(0, self.numLinks):
+            bodyName = self.linkNames[indLink]
+            if indLink == 0:
+                # absolute coordinates
+                pyrosim.Send_Cube(name=bodyName, pos = [0, 0, self.startZ], 
+                                  size = [self.x[bodyName], self.y[bodyName], self.z[bodyName]], 
+                                  materialColor=self.myColor[bodyName])
             else:
-                pyrosim.Send_Cube(name=self.linkNames[counter], pos = [0, 0, startZ], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
+                # relative coordinates
+                pyrosim.Send_Cube(name=bodyName, pos = [self.x[bodyName]/2, 0, 0], 
+                                  size = [self.x[bodyName], self.y[bodyName], self.z[bodyName]], 
+                                  materialColor=self.myColor[bodyName])
+                
+        for indLink in range(self.numLinks, len(self.linkNames)):
+            bodyName = self.linkNames[indLink]
+            pyrosim.Send_Cube(name=bodyName, pos = self.linkPos[bodyName], 
+                                size = [self.x[bodyName], self.y[bodyName], self.z[bodyName]], 
+                                materialColor=self.myColor[bodyName])
+                
+        for indJoint in range(0, self.numLinks-1):
+            jointName = self.jointNames[indJoint]
+            if indJoint == 0:
+                # absolute coordinates
+                pyrosim.Send_Joint( name = jointName, parent= self.linkNames[indJoint], 
+                                   child = self.linkNames[indJoint+1],
+                                   type = "revolute", 
+                                   position = [self.x[self.linkNames[indJoint]]/2, 0, self.startZ], 
+                                   jointAxis=self.jointAxis[jointName])
 
-            self.counterTorso.append(counter)
-            # counter = counter + 1
-            # print("counter = "+str(counter))
+            else:
+                # relative coordinates
+                pyrosim.Send_Joint( name = jointName, parent= self.linkNames[indJoint], 
+                                   child = self.linkNames[indJoint+1], 
+                                   type = "revolute", 
+                                   position = [self.x[self.linkNames[indJoint]], 0, 0], 
+                                   jointAxis=self.jointAxis[jointName])
+                
+        for indJoint in range(self.numLinks-1, len(self.linkNames)-1):
+            jointName = self.jointNames[indJoint]    
+            pyrosim.Send_Joint( name = jointName, parent= self.subJointParent[jointName], 
+                                child = self.subJointChild[jointName], 
+                                type = "revolute", 
+                                position = self.subJointPos[jointName], 
+                                jointAxis=self.jointAxis[jointName])
 
-            for col in range(1,2+1):
-                # print("col = "+str(col))
-
-                for ind in range(1,c.numSubLinks[row-1,col-1]+1):
-                    counter = counter + 1
-                    # print("ind = "+str(ind))
-                    # print("counter = "+str(counter))
-
-                    self.linkNames.append("Body"+str(row)+"."+str(col)+"."+str(ind))
-                    # self.jointNames.append("Body"+str(row)+"."+str(col)+"."+str(ind-1)+"_Body"+str(row)+"."+str(col)+"."+str(ind))
-
-                    if col == 2: # negative side joint
-                        negMultY = -1
-                    else:
-                        negMultY = 1
-
-
-                    dir = random.randint(1,2)
-                    if ind == 1:
-                        dir = 2
-                    # 1 is down in -z direction
-                    # 2 is left/right in +/-y direction
-
-                    jointDir = random.randint(1,3)
-                    # 1 is x axis
-                    # 2 is y axis
-                    # 3 is z axis
-                    if jointDir == 1:
-                        jointAxisStr = "1 0 0"
-                    elif jointDir == 2:
-                        jointAxisStr = "0 1 0"
-                    elif jointDir == 3:
-                        jointAxisStr = "0 0 1"
-
-                    if ind == 1 and row == 1:
-                        self.jointNames.append("Body"+str(row)+"."+str(0)+"."+str(0)+"_Body"+str(row)+"."+str(col)+"."+str(ind))
-                        pyrosim.Send_Joint( name = self.jointNames[counter-1], parent= self.linkNames[self.counterTorso[row-1]], child = self.linkNames[counter], \
-                            type = "revolute", position = [0, negMultY*self.y[self.counterTorso[row-1]]/2, startZ], jointAxis=jointAxisStr)
-                        pyrosim.Send_Cube(name=self.linkNames[counter], pos = [0, negMultY*self.y[counter]/2, 0], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
-                        
-                    elif ind == 1 and row == 2: 
-                        self.jointNames.append("Body"+str(row)+"."+str(0)+"."+str(0)+"_Body"+str(row)+"."+str(col)+"."+str(ind))
-                        pyrosim.Send_Joint( name = self.jointNames[counter-1], parent= self.linkNames[self.counterTorso[row-1]], child = self.linkNames[counter], \
-                            type = "revolute", position = [self.x[self.counterTorso[row-1]]/2, negMultY*self.y[self.counterTorso[row-1]]/2, self.z[0]/2], jointAxis=jointAxisStr)
-                        pyrosim.Send_Cube(name=self.linkNames[counter], pos = [0, negMultY*self.y[counter]/2, 0], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
-                    
-                    elif ind == 1 and row > 2: 
-                        self.jointNames.append("Body"+str(row)+"."+str(0)+"."+str(0)+"_Body"+str(row)+"."+str(col)+"."+str(ind))
-                        pyrosim.Send_Joint( name = self.jointNames[counter-1], parent= self.linkNames[self.counterTorso[row-1]], child = self.linkNames[counter], \
-                            type = "revolute", position = [self.x[self.counterTorso[row-1]]/2, negMultY*self.y[self.counterTorso[row-1]]/2, 0], jointAxis=jointAxisStr)
-                        pyrosim.Send_Cube(name=self.linkNames[counter], pos = [0, negMultY*self.y[counter]/2, 0], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
-                    
-                    elif dir == 1 and prevdir == 1: 
-                        self.jointNames.append("Body"+str(row)+"."+str(col)+"."+str(ind-1)+"_Body"+str(row)+"."+str(col)+"."+str(ind))
-                        pyrosim.Send_Joint( name =  self.jointNames[counter-1], parent= self.linkNames[counter-1], child = self.linkNames[counter], \
-                            type = "revolute", position = [0, 0, -1*self.z[counter-1]], jointAxis=jointAxisStr)
-                        pyrosim.Send_Cube(name=self.linkNames[counter], pos = [0, 0, -1*self.z[counter]/2], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
-
-                    elif dir == 1 and prevdir == 2:
-                        self.jointNames.append("Body"+str(row)+"."+str(col)+"."+str(ind-1)+"_Body"+str(row)+"."+str(col)+"."+str(ind))
-                        pyrosim.Send_Joint( name =  self.jointNames[counter-1], parent= self.linkNames[counter-1], child = self.linkNames[counter], \
-                            type = "revolute", position = [0, negMultY*self.y[counter-1]/2, -1*self.z[counter-1]/2], jointAxis=jointAxisStr)
-                        pyrosim.Send_Cube(name=self.linkNames[counter], pos = [0, 0, -1*self.z[counter]/2], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
-                    
-                    elif dir == 2 and prevdir == 1: # change this one
-                        self.jointNames.append("Body"+str(row)+"."+str(col)+"."+str(ind-1)+"_Body"+str(row)+"."+str(col)+"."+str(ind))
-                        pyrosim.Send_Joint( name =  self.jointNames[counter-1], parent= self.linkNames[counter-1], child = self.linkNames[counter], \
-                            type = "revolute", position = [0, negMultY*self.y[counter-1]/2, -1*self.z[counter-1]/2], jointAxis=jointAxisStr)
-                        pyrosim.Send_Cube(name=self.linkNames[counter], pos = [0, negMultY*self.y[counter]/2, 0], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
-
-                    elif dir == 2 and prevdir == 2:
-                        self.jointNames.append("Body"+str(row)+"."+str(col)+"."+str(ind-1)+"_Body"+str(row)+"."+str(col)+"."+str(ind))
-                        pyrosim.Send_Joint( name =  self.jointNames[counter-1], parent= self.linkNames[counter-1], child = self.linkNames[counter], \
-                            type = "revolute", position = [0, negMultY*self.y[counter-1], 0], jointAxis=jointAxisStr)
-                        pyrosim.Send_Cube(name=self.linkNames[counter], pos = [0, negMultY*self.y[counter]/2, 0], size = [self.x[counter], self.y[counter], self.z[counter]], materialColor=self.myColor[counter])
-
-
-                    prevdir = dir
-
-        print(self.linkNames)
-        print(self.jointNames)
+       
+        # print(self.linkNames)
+        # print(self.jointNames)
         # print(self.x)
         # print(self.y)
         # print(self.z)
@@ -248,7 +312,7 @@ class SOLUTION:
         # have a counter variable for name ID
         # do sensors first
 
-        print(self.randSensors)
+        # print(self.randSensors)
 
         counterNeuron = 0
         for ind in self.randSensors:

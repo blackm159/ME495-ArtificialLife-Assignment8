@@ -5,9 +5,21 @@ from parallelHillClimber import PARALLEL_HILL_CLIMBER
 #     os.system("py generate.py")
 #     os.system("py simulate.py")
 
+os.system("del brain*.nndf")
+os.system("del body*.urdf")
+os.system("del fitness*.txt")
+os.system("del tmp*.txt")
+os.system("del world*.sdf")
+
 phc = PARALLEL_HILL_CLIMBER()
 
 phc.Evolve()
 
 phc.Show_Best()
+
+# os.system("del brain*.nndf")
+# os.system("del body*.urdf")
+# os.system("del fitness*.txt")
+# os.system("del tmp*.txt")
+# os.system("del world*.sdf")
 

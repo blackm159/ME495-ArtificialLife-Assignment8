@@ -23,10 +23,10 @@ frontLegMotorValues = frontLegAmplitude * np.sin(frontLegFrequency *
 backLegMotorValues = backLegAmplitude * np.sin(backLegFrequency * 
     np.linspace(0, 2*np.pi, 1000) + backLegPhaseOffset)
 
-numberOfGenerations = 1
-populationSize = 1
+numberOfGenerations = 10
+populationSize = 10
 
-seed = random.randint(0,100)
+seed = 1#random.randint(0,100)
 
 random.seed(seed)
 
@@ -48,7 +48,7 @@ for row in range(1,numLinks+1):
 # print(totalNumLinks)
 # print(locTorso)
 
-numSensorNeurons = random.randint(3,totalNumLinks)
+numSensorNeurons = random.randint(1,totalNumLinks)
 numMotorNeurons = totalNumLinks - 1
 
 motorJointRange = 0.3 #this does something with angle values
