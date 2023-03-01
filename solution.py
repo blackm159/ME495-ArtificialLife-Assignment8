@@ -16,6 +16,8 @@ class SOLUTION:
         self.numLinks = c.numLinks
         self.numSubLinks = c.numSubLinks
 
+        self.numSensorNeurons = c.numSensorNeurons
+
         self.startZ = 3
 
         self.linkNames = []
@@ -159,9 +161,9 @@ class SOLUTION:
 
         # a = 3
         # b = 2
-        self.weights = np.empty(shape=(c.numSensorNeurons,c.numMotorNeurons), dtype='object')
+        self.weights = np.empty(shape=(self.numSensorNeurons,c.numMotorNeurons), dtype='object')
         # self.weights = np.empty(shape=(a,b), dtype='object')
-        for row in range(0, c.numSensorNeurons):
+        for row in range(0, self.numSensorNeurons):
             for col in range(0, c.numMotorNeurons):
                 self.weights[row,col] = np.random.rand()
         self.weights = self.weights * 2 - 1
@@ -209,7 +211,7 @@ class SOLUTION:
         os.system("del " + fitnessFileName)
 
     def Mutate(self):
-        randRow = random.randint(0,c.numSensorNeurons-1)
+        randRow = random.randint(0,self.numSensorNeurons-1)
         randCol = random.randint(0,c.numMotorNeurons-1)
 
         self.weights[randRow, randCol] = random.random()*2 - 1
@@ -223,15 +225,39 @@ class SOLUTION:
         elif jointDir == 3:
             self.jointAxis[self.jointNames[randJointAxis]] = "0 0 1"
 
-        randLink = random.randint(0,len(self.linkNames)-1)
-        if randLink <= self.numLinks:
-            self.x[self.linkNames[randLink]] = random.uniform(1.0,1.25)
-            self.y[self.linkNames[randLink]] = random.uniform(0.5,1.25)
-            self.z[self.linkNames[randLink]] = random.uniform(0.5,1.25)
+        
+        randSensor = random.randint(0,len(self.linkNames)-1)
+        if randSensor in self.randSensors:
+            self.myColor[self.linkNames[randSensor]] = "blue"
+            ind = self.randSensors.index(randSensor)
+            self.randSensors.remove(randSensor)
+            self.weights = np.delete(self.weights, ind, 0)
+            self.numSensorNeurons = self.numSensorNeurons - 1
         else:
-            self.x[self.linkNames[randLink]] = random.uniform(0.25,0.75)
-            self.y[self.linkNames[randLink]] = random.uniform(0.25,0.75)
-            self.z[self.linkNames[randLink]] = random.uniform(0.5,0.75)
+            self.myColor[self.linkNames[randSensor]] = "green"
+            self.randSensors.append(randSensor)
+            # self.randSensors.sort()
+            self.numSensorNeurons = self.numSensorNeurons + 1
+            newrow = []
+            for col in range(0, c.numMotorNeurons):
+                newrow.append(np.random.rand()*2 - 1)
+            self.weights = np.append(self.weights, [newrow], axis=0)
+
+
+        # # self.weights = np.empty(shape=(a,b), dtype='object')
+        # for col in range(0, c.numMotorNeurons):
+        #     self.weights[self.numSensorNeurons,col] = np.random.rand()*2 - 1
+
+
+        # randLink = random.randint(0,len(self.linkNames)-1)
+        # if randLink <= self.numLinks:
+        #     self.x[self.linkNames[randLink]] = random.uniform(1.0,1.25)
+        #     self.y[self.linkNames[randLink]] = random.uniform(0.5,1.25)
+        #     self.z[self.linkNames[randLink]] = random.uniform(0.5,1.25)
+        # else:
+        #     self.x[self.linkNames[randLink]] = random.uniform(0.25,0.75)
+        #     self.y[self.linkNames[randLink]] = random.uniform(0.25,0.75)
+        #     self.z[self.linkNames[randLink]] = random.uniform(0.5,0.75)
 
 
     def Set_ID(self, newID):
@@ -330,9 +356,9 @@ class SOLUTION:
             counterNeuron = counterNeuron + 1
         
 
-        for currentRow in range(0, c.numSensorNeurons):
+        for currentRow in range(0, self.numSensorNeurons):
             for currentColumn in range(0,c.numMotorNeurons):
                 # print("i = " + str(i) + ", j = " + str(j))
-                pyrosim.Send_Synapse( sourceNeuronName = currentRow , targetNeuronName = currentColumn+c.numSensorNeurons , weight = self.weights[currentRow][currentColumn] )
+                pyrosim.Send_Synapse( sourceNeuronName = currentRow , targetNeuronName = currentColumn+self.numSensorNeurons , weight = self.weights[currentRow][currentColumn] )
 
         pyrosim.End()
