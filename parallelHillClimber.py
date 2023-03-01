@@ -3,6 +3,7 @@ import constants as c
 import copy
 import os
 import random
+import time
 
 class PARALLEL_HILL_CLIMBER:
     def __init__(self):
@@ -32,6 +33,9 @@ class PARALLEL_HILL_CLIMBER:
                 tempBest = self.parents[key].fitness
         
         self.bestFitness.append(tempBest)
+
+        self.Show_Best()
+        time.sleep(10)
 
         for currentGeneration in range(c.numberOfGenerations):
             self.Evolve_For_One_Generation()

@@ -15,6 +15,8 @@ phc = PARALLEL_HILL_CLIMBER()
 
 phc.Evolve()
 
+input("Please press enter when ready to record best \n")
+
 phc.Show_Best()
 
 # os.system("del brain*.nndf")
