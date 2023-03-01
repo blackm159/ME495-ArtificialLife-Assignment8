@@ -28,7 +28,7 @@ class PARALLEL_HILL_CLIMBER:
 
         tempBest = self.parents[0].fitness
         for key in self.parents:
-            if self.parents[key].fitness > tempBest:
+            if self.parents[key].fitness < tempBest:
                 # tempBestKey = key
                 tempBest = self.parents[key].fitness
         
@@ -66,12 +66,12 @@ class PARALLEL_HILL_CLIMBER:
 
     def Select(self):
         for key in self.parents:
-            if (self.parents[key].fitness < self.children[key].fitness):
+            if (self.parents[key].fitness > self.children[key].fitness):
                 self.parents[key] = self.children[key]
 
         tempBest = self.parents[0].fitness
         for key in self.parents:
-            if self.parents[key].fitness > tempBest:
+            if self.parents[key].fitness < tempBest:
                 # tempBestKey = key
                 tempBest = self.parents[key].fitness
         
@@ -94,7 +94,7 @@ class PARALLEL_HILL_CLIMBER:
         bestFit = self.parents[0].fitness
         bestKey = 0
         for key in self.parents:
-            if self.parents[key].fitness > bestFit:
+            if self.parents[key].fitness < bestFit:
                 bestKey = key
                 bestFit = self.parents[key].fitness
         print("Best key " + str(bestKey))

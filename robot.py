@@ -3,6 +3,7 @@ import pyrosim.pyrosim as pyrosim
 from pyrosim.neuralNetwork import NEURAL_NETWORK
 import os
 import constants as c
+import stat
 
 from sensor import SENSOR
 from motor import MOTOR
@@ -51,12 +52,13 @@ class ROBOT:
 
         basePositionAndOrientation = p.getBasePositionAndOrientation(self.robotId)
         basePosition = basePositionAndOrientation[0]
-        yPosition = basePosition[1]
+        xPosition = basePosition[0]
 
         filename = str(self.myID) +".txt"
         f = open("tmp" + filename, "w")
-        f.write(str(yPosition))
+        f.write(str(xPosition))
         f.close()
+        os.chmod("tmp" + filename, stat.S_IRWXU)
         os.system("rename tmp" + filename + " fitness" + filename)
 
         
