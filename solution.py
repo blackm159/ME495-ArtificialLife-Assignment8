@@ -4,6 +4,7 @@ import os
 import random
 import time
 import constants as c
+import stat
 
 
 class SOLUTION:
@@ -196,7 +197,12 @@ class SOLUTION:
         while not os.path.exists(fitnessFileName):
             time.sleep(0.01)
 
-        fitnessFile = open(fitnessFileName, "r")
+        try:
+            fitnessFile = open(fitnessFileName, "r")
+        except:
+            os.chmod(fitnessFileName, stat.S_IRWXU)
+            fitnessFile = open(fitnessFileName, "r")
+
         self.fitness = float(fitnessFile.read())
         # print("\nself.fitness = " + str(self.fitness))
         fitnessFile.close()
